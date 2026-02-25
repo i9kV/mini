@@ -1,4 +1,4 @@
-import { IsMongoId, IsString, IsDateString } from 'class-validator';
+import { IsMongoId, IsString, IsDateString, Matches } from 'class-validator';
 
 export class CreateBookingDto {
   @IsMongoId()
@@ -6,6 +6,14 @@ export class CreateBookingDto {
 
   @IsString()
   customerName: string;
+
+  @IsString()
+  brand: string;
+
+  @Matches(/^[0-9]{9,10}$/, {
+    message: 'เบอร์โทรต้องเป็นตัวเลข 9-10 หลัก',
+  })
+  phone: string;
 
   @IsDateString()
   startDate: string;

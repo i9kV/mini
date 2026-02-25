@@ -58,7 +58,7 @@ const Navbar = () => {
           {/* Desktop Login/Logout */}
           <div className="hidden md:block">
             {isLoggedIn ? (
-              <Button variant="destructive" onClick={handleLogout}>
+              <Button variant="destructive" onClick={handleLogout} className="text-white">
                 ออกจากระบบ
               </Button>
             ) : (
@@ -98,7 +98,8 @@ const Navbar = () => {
                   {isLoggedIn ? (
                     <Button
                       variant="destructive"
-                      className="w-full"
+                      className="w-full "
+
                       onClick={handleLogout}
                     >
                       ออกจากระบบ

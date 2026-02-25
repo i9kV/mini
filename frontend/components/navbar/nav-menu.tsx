@@ -31,7 +31,15 @@ export const NavMenu = (props: NavigationMenuProps) => {
 
         <NavigationMenuItem>
           <NavigationMenuLink asChild>
-            <Link href="#features">ข้อมูล</Link>
+            <Link href="/#features">ข้อมูล</Link>
+          </NavigationMenuLink>
+        </NavigationMenuItem>
+
+
+
+        <NavigationMenuItem>
+          <NavigationMenuLink asChild>
+            <Link href="./history">ประวัติการจอง</Link>
           </NavigationMenuLink>
         </NavigationMenuItem>
 

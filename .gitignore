@@ -21,3 +21,7 @@ backend/dist
 .DS_Store
 *.textClipping
 
+
+# uploads
+backend/uploads/
+

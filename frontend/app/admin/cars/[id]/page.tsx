@@ -17,14 +17,19 @@ export default function EditCarPage({
     const { id } = use(params);
     const router = useRouter();
 
-    const [name, setName] = useState("");
+    const [brand, setBrand] = useState("");
+    const [name, setModel] = useState("");
     const [pricePerDay, setPricePerDay] = useState("");
     const [available, setAvailable] = useState(true);
+
+    const [currentImage, setCurrentImage] = useState<string | null>(null);
+    const [newImage, setNewImage] = useState<File | null>(null);
+    const [preview, setPreview] = useState<string | null>(null);
 
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
 
-    // ✅ ดึงข้อมูลรถจาก NestJS
+    // ✅ ดึงข้อมูลรถ (กัน undefined ทุกค่า)
     useEffect(() => {
         const fetchCar = async () => {
             try {
@@ -36,9 +41,12 @@ export default function EditCarPage({
 
                 const data = await res.json();
 
-                setName(data.name);
-                setPricePerDay(String(data.pricePerDay));
-                setAvailable(data.available);
+                setBrand(data.brand ?? "");
+                setModel(data.name ?? "");
+                setPricePerDay(data.pricePerDay?.toString() ?? "");
+                setAvailable(data.available ?? true);
+                setCurrentImage(data.imageUrl ?? null);
+
             } catch {
                 alert("ไม่พบข้อมูลรถ");
                 router.push("/admin/cars");
@@ -50,22 +58,24 @@ export default function EditCarPage({
         fetchCar();
     }, [id, router]);
 
-    // ✅ อัปเดตข้อมูลไป NestJS
     const handleUpdate = async (e: React.FormEvent) => {
         e.preventDefault();
         setSaving(true);
 
         try {
+            const formData = new FormData();
+            formData.append("brand", brand);
+            formData.append("name", name);
+            formData.append("pricePerDay", pricePerDay);
+            formData.append("available", String(available));
+
+            if (newImage) {
+                formData.append("image", newImage);
+            }
+
             const res = await fetch(`http://localhost:3000/cars/${id}`, {
                 method: "PATCH",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    name,
-                    pricePerDay: Number(pricePerDay),
-                    available,
-                }),
+                body: formData,
             });
 
             if (!res.ok) throw new Error();
@@ -97,10 +107,19 @@ export default function EditCarPage({
                     <form onSubmit={handleUpdate} className="space-y-6">
 
                         <div className="space-y-2">
-                            <Label>ชื่อรถ</Label>
+                            <Label>ยี่ห้อ</Label>
                             <Input
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
+                                value={brand ?? ""}
+                                onChange={(e) => setBrand(e.target.value)}
+                                required
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label>รุ่น</Label>
+                            <Input
+                                value={name ?? ""}
+                                onChange={(e) => setModel(e.target.value)}
                                 required
                             />
                         </div>
@@ -109,7 +128,7 @@ export default function EditCarPage({
                             <Label>ราคาต่อวัน</Label>
                             <Input
                                 type="number"
-                                value={pricePerDay}
+                                value={pricePerDay ?? ""}
                                 onChange={(e) => setPricePerDay(e.target.value)}
                                 required
                             />
@@ -118,8 +137,36 @@ export default function EditCarPage({
                         <div className="flex items-center justify-between border rounded-lg p-4">
                             <Label>สถานะพร้อมให้เช่า</Label>
                             <Switch
-                                checked={available}
-                                onCheckedChange={setAvailable}
+                                checked={available ?? false}
+                                onCheckedChange={(val) => setAvailable(Boolean(val))}
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label>รูปภาพรถ</Label>
+
+                            {preview ? (
+                                <img
+                                    src={preview}
+                                    className="w-full h-48 object-cover rounded-lg"
+                                />
+                            ) : currentImage ? (
+                                <img
+                                    src={`http://localhost:3000${currentImage}`}
+                                    className="w-full h-48 object-cover rounded-lg"
+                                />
+                            ) : null}
+
+                            <Input
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) {
+                                        setNewImage(file);
+                                        setPreview(URL.createObjectURL(file));
+                                    }
+                                }}
                             />
                         </div>
 

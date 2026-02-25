@@ -11,7 +11,7 @@ export default function Home() {
   return (
     <>
       <Navbar />
-      <main className="pt-16 xs:pt-20 sm:pt-24">
+      <main className="pt-13">
         <Hero />
         <Features />
         {/* <Pricing />

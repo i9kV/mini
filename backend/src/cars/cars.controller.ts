@@ -8,6 +8,7 @@ import {
   Delete,
   UseInterceptors,
   UploadedFile,
+  Query,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CarsService } from './cars.service';
@@ -20,6 +21,7 @@ import { extname } from 'path';
 export class CarsController {
   constructor(private readonly carsService: CarsService) {}
 
+  // ✅ CREATE CAR WITH IMAGE
   @Post()
   @UseInterceptors(
     FileInterceptor('image', {
@@ -40,19 +42,41 @@ export class CarsController {
   create(@Body() dto: CreateCarDto, @UploadedFile() file: Express.Multer.File) {
     return this.carsService.create(dto, file);
   }
+
+  // ✅ FILTER + SEARCH + PAGINATION
   @Get()
-  findAll() {
-    return this.carsService.findAll();
+  findAll(
+    @Query('search') search?: string,
+    @Query('type') type?: string,
+    @Query('available') available?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.carsService.findAll({
+      search,
+      type,
+      available,
+      page: page ? parseInt(page) : 1,
+      limit: limit ? parseInt(limit) : 10,
+    });
   }
 
+  @Get('stats')
+  getStats() {
+    return this.carsService.getStats();
+  }
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.carsService.findOne(id);
   }
-
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateCarDto) {
-    return this.carsService.update(id, dto);
+  @UseInterceptors(FileInterceptor('image'))
+  update(
+    @Param('id') id: string,
+    @UploadedFile() file: Express.Multer.File,
+    @Body() body: any,
+  ) {
+    return this.carsService.update(id, body, file);
   }
 
   @Delete(':id')

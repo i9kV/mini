@@ -12,6 +12,12 @@ export class Booking {
   customerName: string;
 
   @Prop({ required: true })
+  brand: string;
+
+  @Prop({ required: true })
+  phone: string;
+
+  @Prop({ required: true })
   startDate: Date;
 
   @Prop({ required: true })

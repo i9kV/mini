@@ -1,53 +1,92 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { useRouter } from "next/navigation";
 
 export default function CarDetailPage() {
     const { id } = useParams();
+    const router = useRouter();
 
     const [car, setCar] = useState<any>(null);
-    const [customerName, setCustomerName] = useState("");
+    const [userEmail, setUserEmail] = useState<string | null>(null);
+
+    const [phone, setPhone] = useState("");
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
+
     const [loading, setLoading] = useState(true);
     const [bookingLoading, setBookingLoading] = useState(false);
-    const router = useRouter();
-    // ✅ โหลดข้อมูลรถ
+
+
     useEffect(() => {
-        async function fetchCar() {
-            const res = await fetch(`http://localhost:3000/cars/${id}`);
-            const data = await res.json();
-            setCar(data);
-            setLoading(false);
+        async function init() {
+            try {
+                const token = localStorage.getItem("token");
+                if (!token) {
+                    router.push("../auth/login");
+                    return;
+                }
+
+                // ดึง profile user
+                const meRes = await fetch("http://localhost:3000/auth/me", {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+                // console.log("STATUS:", meRes.status);
+
+
+                if (!meRes.ok) {
+                    router.push("../auth/login");
+                    return;
+                }
+
+                const me = await meRes.json();
+                setUserEmail(me.email);
+
+                //โหลดรถ
+                const carRes = await fetch(
+                    `http://localhost:3000/cars/${id}`
+                );
+                const carData = await carRes.json();
+                setCar(carData);
+
+                setLoading(false);
+            } catch (error) {
+                router.push("../auth/login");
+            }
         }
 
-        fetchCar();
-    }, [id]);
+        init();
+    }, [id, router]);
 
     // ✅ จองรถ
     async function handleBooking() {
-
-        if (!customerName || !startDate || !endDate) {
+        if (!phone || !startDate || !endDate) {
             alert("กรอกข้อมูลให้ครบ");
             return;
         }
 
         setBookingLoading(true);
 
+        const token = localStorage.getItem("token");
+
         const res = await fetch("http://localhost:3000/bookings", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify({
                 car: id,
-                customerName,
+                // carName: car?.name,
+                brand: car?.brand,
+                customerName: userEmail,
+                phone,
                 startDate,
                 endDate,
             }),
@@ -61,8 +100,7 @@ export default function CarDetailPage() {
             return;
         }
 
-        alert("จองสำเร็จ 🎉");
-        setBookingLoading(false);
+        alert("จองสำเร็จ ");
         router.push("/");
     }
 
@@ -72,15 +110,16 @@ export default function CarDetailPage() {
         <div className="flex justify-center p-6 bg-muted/40 min-h-screen">
             <Card className="w-full max-w-xl rounded-2xl shadow-lg">
                 <CardHeader>
-                    <CardTitle>{car.name}</CardTitle>
+                    <CardTitle>{car?.name}</CardTitle>
                 </CardHeader>
 
                 <CardContent className="space-y-6">
-
-                    <p>💰 ราคา/วัน: ฿{car.pricePerDay}</p>
+                    <p>ราคา/วัน: ฿{car?.pricePerDay}</p>
                     <p>
-                        🚗 สถานะ:{" "}
-                        {car.available ? "พร้อมให้เช่า" : "ไม่พร้อม"}
+                        สถานะ:{" "}
+                        {car?.available
+                            ? "พร้อมให้เช่า"
+                            : "ไม่พร้อม"}
                     </p>
 
                     <div className="border-t pt-6 space-y-4">
@@ -88,13 +127,21 @@ export default function CarDetailPage() {
                             ฟอร์มจองรถ
                         </h3>
 
+                        {/* ✅ แสดง email (readonly) */}
                         <div className="space-y-2">
-                            <Label>ชื่อผู้จอง</Label>
+                            <Label>บัญชีผู้จอง</Label>
+                            <Input value={userEmail || ""} disabled />
+                        </div>
+
+                        {/* ✅ เบอร์โทร */}
+                        <div className="space-y-2">
+                            <Label>เบอร์โทรศัพท์</Label>
                             <Input
-                                value={customerName}
+                                value={phone}
                                 onChange={(e) =>
-                                    setCustomerName(e.target.value)
+                                    setPhone(e.target.value)
                                 }
+                                placeholder="0812345678"
                             />
                         </div>
 
@@ -117,7 +164,14 @@ export default function CarDetailPage() {
                                 }
                             />
                         </div>
-
+                        <Button
+                            variant="outline"
+                            type="button"
+                            onClick={() => router.push("/")}
+                            className="w-full"
+                        >
+                            ยกเลิก
+                        </Button>
                         <Button
                             onClick={handleBooking}
                             disabled={bookingLoading}
@@ -127,6 +181,8 @@ export default function CarDetailPage() {
                                 ? "กำลังจอง..."
                                 : "จองรถคันนี้"}
                         </Button>
+
+
                     </div>
                 </CardContent>
             </Card>

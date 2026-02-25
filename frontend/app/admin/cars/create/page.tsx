@@ -85,6 +85,11 @@ export default function CreateCar() {
                 const errorText = await res.text();
                 throw new Error(errorText);
             }
+            if (!form.type || !form.transmission) {
+                alert("กรุณาเลือกประเภทรถและระบบเกียร์");
+                setLoading(false);
+                return;
+            }
 
             router.push("/admin/cars"); // 🔥 แนะนำเปลี่ยน path ให้ถูก
         } catch (err) {
@@ -126,30 +131,40 @@ export default function CreateCar() {
                             </div>
 
                             <div className="space-y-2">
-                                <Label>ประเภทรถ</Label>
-                                <Select onValueChange={(v) => handleChange("type", v)}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="เลือกประเภท" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="SUV">SUV</SelectItem>
-                                        <SelectItem value="Sedan">Sedan</SelectItem>
-                                        <SelectItem value="Van">Van</SelectItem>
-                                    </SelectContent>
-                                </Select>
+                                <div className="space-y-2">
+                                    <Label>ประเภทรถ</Label>
+                                    <Select
+                                        value={form.type}
+                                        onValueChange={(v) => handleChange("type", v)}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="เลือกประเภท" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="SUV">SUV</SelectItem>
+                                            <SelectItem value="Sedan">Sedan</SelectItem>
+                                            <SelectItem value="Van">Van</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
                             </div>
 
                             <div className="space-y-2">
-                                <Label>ระบบเกียร์</Label>
-                                <Select onValueChange={(v) => handleChange("transmission", v)}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="เลือกเกียร์" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="AUTO">AUTO</SelectItem>
-                                        <SelectItem value="MANUAL">MANUAL</SelectItem>
-                                    </SelectContent>
-                                </Select>
+                                <div className="space-y-2">
+                                    <Label>ระบบเกียร์</Label>
+                                    <Select
+                                        value={form.transmission}
+                                        onValueChange={(v) => handleChange("transmission", v)}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="เลือกเกียร์" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="AUTO">AUTO</SelectItem>
+                                            <SelectItem value="MANUAL">MANUAL</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
                             </div>
 
                             <div className="space-y-2">
@@ -176,7 +191,7 @@ export default function CreateCar() {
                                 <Checkbox
                                     checked={form.available}
                                     onCheckedChange={(checked) =>
-                                        handleChange("available", checked)
+                                        handleChange("available", checked === true)
                                     }
                                 />
                                 <Label>พร้อมให้เช่า</Label>

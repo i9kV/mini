@@ -41,6 +41,9 @@ export class BookingsService {
       endDate: end,
     });
   }
+  findByUser(email: string) {
+    return this.bookingModel.find({ customerName: email });
+  }
 
   async findAll() {
     return this.bookingModel.find().populate('car');
@@ -48,5 +51,13 @@ export class BookingsService {
 
   async updateStatus(id: string, status: string) {
     return this.bookingModel.findByIdAndUpdate(id, { status }, { new: true });
+  }
+
+  async getStats() {
+    const totalBookings = await this.bookingModel.countDocuments();
+
+    return {
+      totalBookings,
+    };
   }
 }

@@ -7,7 +7,7 @@ export type BookingDocument = Booking & Document;
 export class Booking {
   @Prop({ type: Types.ObjectId, ref: 'Car', required: true })
   car: Types.ObjectId;
-
+  // brand: car?.brand,
   // @Prop({ required: true })
   // customerName: string;
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })

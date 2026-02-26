@@ -2,6 +2,7 @@ import {
   Injectable,
   BadRequestException,
   NotFoundException,
+  ForbiddenException,
 } from '@nestjs/common';
 
 import { InjectModel } from '@nestjs/mongoose';
@@ -13,6 +14,15 @@ import { CreateBookingDto } from './dto/create-booking.dto';
 
 @Injectable()
 export class BookingsService {
+  async remove(id: string) {
+    const booking = await this.bookingModel.findByIdAndDelete(id);
+
+    if (!booking) {
+      throw new NotFoundException('Booking not found');
+    }
+
+    return { message: 'Booking deleted successfully' };
+  }
   constructor(
     @InjectModel(Booking.name)
     private bookingModel: Model<BookingDocument>,
@@ -136,5 +146,34 @@ export class BookingsService {
       completed,
       cancelled,
     };
+  }
+  // ยกเลิกการจอง
+  async cancelBooking(id: string, userId: string) {
+    if (!Types.ObjectId.isValid(id)) {
+      throw new BadRequestException('Booking ID ไม่ถูกต้อง');
+    }
+
+    const booking = await this.bookingModel.findById(id);
+
+    if (!booking) {
+      throw new NotFoundException('ไม่พบการจอง');
+    }
+
+    if (booking.user.toString() !== userId) {
+      throw new ForbiddenException('ไม่มีสิทธิ์ยกเลิก');
+    }
+
+    if (booking.status !== 'pending') {
+      throw new BadRequestException('ยกเลิกได้เฉพาะรายการที่รอดำเนินการ');
+    }
+
+    booking.status = 'cancelled';
+    await booking.save();
+
+    await this.carModel.findByIdAndUpdate(booking.car, {
+      available: true,
+    });
+
+    return booking;
   }
 }

@@ -10,6 +10,8 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { Loader2, CalendarDays, Car } from "lucide-react";
 
 export default function PaymentPage() {
     const params = useSearchParams();
@@ -24,36 +26,43 @@ export default function PaymentPage() {
     const [days, setDays] = useState(0);
     const [total, setTotal] = useState(0);
     const [loading, setLoading] = useState(true);
+    const [paying, setPaying] = useState(false);
 
     // โหลดข้อมูลรถ
     useEffect(() => {
         async function fetchCar() {
-            if (!carId) return;
+            try {
+                if (!carId) return;
 
-            const res = await fetch(`http://localhost:3000/cars/${carId}`);
-            const data = await res.json();
+                const res = await fetch(`http://localhost:3000/cars/${carId}`);
+                const data = await res.json();
 
-            setCar(data);
+                setCar(data);
 
-            // คำนวณจำนวนวัน
-            if (startDate && endDate) {
-                const start = new Date(startDate);
-                const end = new Date(endDate);
+                if (startDate && endDate) {
+                    const start = new Date(startDate);
+                    const end = new Date(endDate);
 
-                const diffTime = end.getTime() - start.getTime();
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    const diffTime = end.getTime() - start.getTime();
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-                setDays(diffDays);
-                setTotal(diffDays * data.pricePerDay);
+                    if (diffDays <= 0) {
+                        setDays(0);
+                        setTotal(0);
+                    } else {
+                        setDays(diffDays);
+                        setTotal(diffDays * data.pricePerDay);
+                    }
+                }
+            } catch (err) {
+                console.error("โหลดรถไม่สำเร็จ", err);
+            } finally {
+                setLoading(false);
             }
-
-            setLoading(false);
         }
 
         fetchCar();
     }, [carId, startDate, endDate]);
-
-    const [paying, setPaying] = useState(false);
 
     async function handlePayment() {
         const token = localStorage.getItem("token");
@@ -90,7 +99,6 @@ export default function PaymentPage() {
 
             alert("ชำระเงินสำเร็จ 🎉");
             router.push("/car");
-
         } catch (err: any) {
             alert(err.message);
         } finally {
@@ -98,48 +106,98 @@ export default function PaymentPage() {
         }
     }
 
-    if (loading) return <p className="p-10">Loading...</p>;
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <Loader2 className="w-8 h-8 animate-spin" />
+            </div>
+        );
+    }
 
     return (
         <div className="flex justify-center items-center min-h-screen bg-muted/40 p-6">
-            <Card className="w-full max-w-lg rounded-2xl shadow-xl">
+            <Card className="w-full max-w-xl rounded-2xl shadow-2xl border">
                 <CardHeader>
-                    <CardTitle className="text-center text-2xl">
+                    <CardTitle className="text-center text-2xl font-bold">
                         สรุปการชำระเงิน
                     </CardTitle>
                 </CardHeader>
 
                 <CardContent className="space-y-6">
-                    <div className="space-y-2">
-                        <p><strong>รถ:</strong> {car?.name}</p>
-                        <p><strong>ราคา/วัน:</strong> ฿{car?.pricePerDay}</p>
-                        <p><strong>จำนวนวัน:</strong> {days} วัน</p>
+
+                    {/* Car Info */}
+                    <div className="p-4 bg-muted rounded-xl space-y-2">
+                        <div className="flex items-center gap-2 font-semibold">
+                            <Car className="w-4 h-4" />
+                            {car?.name}
+                        </div>
+
+                        <div className="flex justify-between text-sm">
+                            <span>ราคา / วัน</span>
+                            <Badge variant="secondary">
+                                ฿{car?.pricePerDay?.toLocaleString()}
+                            </Badge>
+                        </div>
+                    </div>
+
+                    {/* Date Info */}
+                    <div className="p-4 bg-muted rounded-xl space-y-2 text-sm">
+                        <div className="flex items-center gap-2 font-semibold">
+                            <CalendarDays className="w-4 h-4" />
+                            วันที่เช่า
+                        </div>
+
+                        <div className="flex justify-between">
+                            <span>เริ่มต้น</span>
+                            <span>{startDate}</span>
+                        </div>
+
+                        <div className="flex justify-between">
+                            <span>สิ้นสุด</span>
+                            <span>{endDate}</span>
+                        </div>
+
+                        <div className="flex justify-between font-medium">
+                            <span>จำนวนวัน</span>
+                            <span>{days} วัน</span>
+                        </div>
                     </div>
 
                     <Separator />
 
-                    <div className="flex justify-between text-lg font-semibold">
+                    {/* Total */}
+                    <div className="flex justify-between text-xl font-bold">
                         <span>ยอดรวมทั้งหมด</span>
                         <span className="text-green-600">
                             ฿{total.toLocaleString()}
                         </span>
                     </div>
 
-                    <Button
-                        onClick={handlePayment}
-                        disabled={paying}
-                        className="w-full text-lg"
-                    >
-                        {paying ? "กำลังดำเนินการ..." : "ชำระเงิน"}
-                    </Button>
+                    {/* Buttons */}
+                    <div className="space-y-3">
+                        <Button
+                            onClick={handlePayment}
+                            disabled={paying || days <= 0}
+                            className="w-full text-lg"
+                        >
+                            {paying ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                    กำลังดำเนินการ...
+                                </>
+                            ) : (
+                                "ชำระเงิน"
+                            )}
+                        </Button>
 
-                    <Button
-                        variant="outline"
-                        onClick={() => router.back()}
-                        className="w-full"
-                    >
-                        ย้อนกลับ
-                    </Button>
+                        <Button
+                            variant="outline"
+                            onClick={() => router.back()}
+                            className="w-full"
+                        >
+                            ย้อนกลับ
+                        </Button>
+                    </div>
                 </CardContent>
             </Card>
         </div>

@@ -7,6 +7,7 @@ import {
   Param,
   UseGuards,
   Req,
+  Delete,
 } from '@nestjs/common';
 
 import { BookingsService } from './bookings.service';
@@ -70,5 +71,18 @@ export class BookingsController {
   @Roles('admin')
   getBookingStats() {
     return this.bookingsService.getStats();
+  }
+
+  @UseGuards(AccessTokenGuard)
+  @Patch(':id/cancel')
+  cancelBooking(@Param('id') id: string, @Req() req: any) {
+    return this.bookingsService.cancelBooking(id, req.user.userId);
+  }
+
+  @Delete(':id')
+  @UseGuards(AccessTokenGuard, RolesGuard)
+  @Roles('admin')
+  remove(@Param('id') id: string) {
+    return this.bookingsService.remove(id);
   }
 }

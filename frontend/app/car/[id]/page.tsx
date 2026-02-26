@@ -70,6 +70,25 @@ export default function CarDetailPage() {
             alert("กรอกข้อมูลให้ครบ");
             return;
         }
+
+        if (new Date(startDate) > new Date(endDate)) {
+            alert("วันคืนต้องมากกว่าวันรับ");
+            return;
+        }
+        const phoneRegex = /^[0-9]+$/;
+
+        if (!phoneRegex.test(phone)) {
+            alert("เบอร์โทรต้องเป็นตัวเลขเท่านั้น");
+            return;
+        }
+
+        if (phone.length !== 10) {
+            alert("เบอร์โทรต้องมี 10 หลัก");
+            return;
+        }
+
+        setBookingLoading(true);
+
         router.push(
             `/payment?car=${id}&phone=${phone}&start=${startDate}&end=${endDate}`
         );
@@ -81,7 +100,9 @@ export default function CarDetailPage() {
         <div className="flex justify-center p-6 bg-muted/40 min-h-screen">
             <Card className="w-full max-w-xl rounded-2xl shadow-lg">
                 <CardHeader>
+                    <CardTitle>{car?.brand}</CardTitle>
                     <CardTitle>{car?.name}</CardTitle>
+
                 </CardHeader>
 
                 <CardContent className="space-y-6">
@@ -109,6 +130,7 @@ export default function CarDetailPage() {
                             <Label>เบอร์โทรศัพท์</Label>
                             <Input
                                 value={phone}
+                                type="tel"
                                 onChange={(e) =>
                                     setPhone(e.target.value)
                                 }
@@ -135,14 +157,8 @@ export default function CarDetailPage() {
                                 }
                             />
                         </div>
-                        <Button
-                            variant="outline"
-                            type="button"
-                            onClick={() => router.push("/car")}
-                            className="w-full"
-                        >
-                            ยกเลิก
-                        </Button>
+
+
                         <Button
                             onClick={handleBooking}
                             disabled={bookingLoading}
@@ -151,6 +167,15 @@ export default function CarDetailPage() {
                             {bookingLoading
                                 ? "กำลังจอง..."
                                 : "จองรถคันนี้"}
+                        </Button>
+
+                        <Button
+                            variant="outline"
+                            type="button"
+                            onClick={() => router.push("/car")}
+                            className="w-full"
+                        >
+                            ยกเลิก
                         </Button>
 
 

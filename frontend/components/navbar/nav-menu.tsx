@@ -39,7 +39,7 @@ export const NavMenu = (props: NavigationMenuProps) => {
 
         <NavigationMenuItem>
           <NavigationMenuLink asChild>
-            <Link href="./history">ประวัติการจอง</Link>
+            <Link href="./history">การจอง</Link>
           </NavigationMenuLink>
         </NavigationMenuItem>
 

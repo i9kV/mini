@@ -70,38 +70,9 @@ export default function CarDetailPage() {
             alert("กรอกข้อมูลให้ครบ");
             return;
         }
-
-        setBookingLoading(true);
-
-        const token = localStorage.getItem("token");
-
-        const res = await fetch("http://localhost:3000/bookings", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-                car: id,
-                // carName: car?.name,
-                brand: car?.brand,
-                customerName: userEmail,
-                phone,
-                startDate,
-                endDate,
-            }),
-        });
-
-        const data = await res.json();
-
-        if (!res.ok) {
-            alert(data.message || "จองไม่สำเร็จ");
-            setBookingLoading(false);
-            return;
-        }
-
-        alert("จองสำเร็จ ");
-        router.push("/");
+        router.push(
+            `/payment?car=${id}&phone=${phone}&start=${startDate}&end=${endDate}`
+        );
     }
 
     if (loading) return <p className="p-6">Loading...</p>;
@@ -167,7 +138,7 @@ export default function CarDetailPage() {
                         <Button
                             variant="outline"
                             type="button"
-                            onClick={() => router.push("/")}
+                            onClick={() => router.push("/car")}
                             className="w-full"
                         >
                             ยกเลิก

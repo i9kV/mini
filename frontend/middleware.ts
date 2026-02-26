@@ -18,7 +18,7 @@ export async function middleware(request: NextRequest) {
 
     console.log("ROLE:", role);
 
-    // ❌ ถ้าเข้า /admin แต่ไม่ใช่ admin → เด้ง
+    // ถ้าเข้า /admin แต่ไม่ใช่ admin → เด้ง
     if (request.nextUrl.pathname.startsWith("/admin")) {
       if (role !== "admin") {
         return NextResponse.redirect(new URL("/", request.url));

@@ -76,11 +76,11 @@ export default function MyBookingsPage() {
 
                             <Badge
                                 variant={
-                                    b.status === "approved"
-                                        ? "default"
+                                    b.status === "completed"
+                                        ? "default"        // เขียว
                                         : b.status === "pending"
-                                            ? "secondary"
-                                            : "destructive"
+                                            ? "secondary"    // เทา
+                                            : "destructive"  // แดง (cancelled)
                                 }
                             >
                                 {b.status}

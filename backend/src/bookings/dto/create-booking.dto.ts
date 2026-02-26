@@ -4,8 +4,8 @@ export class CreateBookingDto {
   @IsMongoId()
   car: string;
 
-  @IsString()
-  customerName: string;
+  // @IsString()
+  // customerName: string;
 
   @IsString()
   brand: string;

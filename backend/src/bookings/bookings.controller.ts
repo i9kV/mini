@@ -1,35 +1,73 @@
-import { Controller, Post, Body, Get, Patch, Param } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  Patch,
+  Param,
+  UseGuards,
+  Req,
+} from '@nestjs/common';
+
 import { BookingsService } from './bookings.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
-import { UseGuards, Req } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
+
+// import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { AccessTokenGuard } from '../auth/guards/access-token.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
 
 @Controller('bookings')
 export class BookingsController {
   constructor(private readonly bookingsService: BookingsService) {}
 
+  // =========================
+  // CREATE BOOKING (USER)
+  // =========================
   @Post()
-  create(@Body() dto: CreateBookingDto) {
-    return this.bookingsService.create(dto);
+  @UseGuards(AccessTokenGuard)
+  create(@Body() dto: CreateBookingDto, @Req() req) {
+    return this.bookingsService.create(dto, req.user.userId);
   }
 
+  // =========================
+  // USER VIEW OWN BOOKINGS
+  // =========================
   @Get('my')
-  @UseGuards(AuthGuard('jwt')) // 👈 ใส่ 'jwt'
+  @UseGuards(AccessTokenGuard)
   getMyBookings(@Req() req) {
-    return this.bookingsService.findByUser(req.user.email);
+    return this.bookingsService.findByUser(req.user.userId);
   }
 
+  // =========================
+  // ADMIN VIEW ALL BOOKINGS
+  // =========================
   @Get()
+  @UseGuards(AccessTokenGuard, RolesGuard)
+  @Roles('admin')
   findAll() {
     return this.bookingsService.findAll();
   }
 
-  @Patch(':id/status/:status')
-  updateStatus(@Param('id') id: string, @Param('status') status: string) {
-    return this.bookingsService.updateStatus(id, status);
+  // =========================
+  // ADMIN UPDATE STATUS
+  // =========================
+  @Patch(':id/status')
+  @UseGuards(AccessTokenGuard, RolesGuard)
+  @Roles('admin')
+  updateStatus(
+    @Param('id') id: string,
+    @Body('action') action: 'completed' | 'cancelled',
+  ) {
+    return this.bookingsService.updateStatus(id, action);
   }
 
+  // =========================
+  // ADMIN STATS
+  // =========================
   @Get('stats')
+  @UseGuards(AccessTokenGuard, RolesGuard)
+  @Roles('admin')
   getBookingStats() {
     return this.bookingsService.getStats();
   }

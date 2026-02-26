@@ -103,8 +103,8 @@ export default async function HomePage(props: {
                             {/* Availability */}
                             <Badge
                                 className={`absolute top-4 right-4 ${car.available
-                                        ? "bg-green-500 hover:bg-green-600 text-white"
-                                        : "bg-red-500 hover:bg-red-600 text-white"
+                                    ? "bg-green-500 hover:bg-green-600 text-white"
+                                    : "bg-red-500 hover:bg-red-600 text-white"
                                     }`}
                             >
                                 {car.available ? "พร้อมให้เช่า" : "ไม่พร้อม"}

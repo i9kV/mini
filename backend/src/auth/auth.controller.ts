@@ -1,17 +1,21 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Req,
+  UseGuards,
+  Res,
+} from '@nestjs/common';
 
 import { AuthService } from './auth.service';
-
 import { AuthDto } from './dto/auth.dto';
 import { SignupDto } from './dto/signup.dto';
 
-import { AuthGuard } from '@nestjs/passport';
-
+import type { Response } from 'express';
 import { AccessTokenGuard } from './guards/access-token.guard';
 
 import { RefreshTokenGuard } from './guards/refresh-token.guard';
-
-import { Throttle } from '@nestjs/throttler';
 
 @Controller('auth')
 export class AuthController {
@@ -27,10 +31,19 @@ export class AuthController {
   signup(@Body() dto: SignupDto) {
     return this.authService.signUp(dto);
   }
-  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+
   @Post('login')
-  login(@Body() dto: AuthDto) {
-    return this.authService.login(dto);
+  async login(@Body() dto: AuthDto, @Res({ passthrough: true }) res: Response) {
+    const result = await this.authService.login(dto);
+
+    res.cookie('token', result.access_token, {
+      httpOnly: false,
+      sameSite: 'lax',
+      secure: false,
+      path: '/',
+    });
+
+    return result;
   }
 
   @UseGuards(AccessTokenGuard)

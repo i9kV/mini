@@ -66,6 +66,14 @@ export class BookingsController {
   // =========================
   // ADMIN STATS
   // =========================
+
+  @Get('revenue')
+  @UseGuards(AccessTokenGuard, RolesGuard)
+  @Roles('admin')
+  getRevenue() {
+    return this.bookingsService.getRevenue();
+  }
+
   @Get('stats')
   @UseGuards(AccessTokenGuard, RolesGuard)
   @Roles('admin')

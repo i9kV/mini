@@ -68,14 +68,33 @@ export class BookingsService {
       throw new BadRequestException('รถคันนี้ถูกจองแล้วในช่วงเวลานี้');
     }
 
+    // ===============================
+    // คำนวณจำนวนวัน
+    // ===============================
+    const diffTime = end.getTime() - start.getTime();
+    const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (days <= 0) {
+      throw new BadRequestException('จำนวนวันไม่ถูกต้อง');
+    }
+
+    // ===============================
+    // คำนวณยอดเงินจริงจากราคารถใน DB
+    // ===============================
+    const totalAmount = days * car.pricePerDay;
+
+    // ===============================
+    // สร้าง booking
+    // ===============================
     const booking = await this.bookingModel.create({
       car: dto.car,
       user: userId,
-      // user: req.user.userId,
       brand: dto.brand,
       phone: dto.phone,
       startDate: start,
       endDate: end,
+      days,
+      totalAmount,
       status: 'pending',
     });
 
@@ -175,5 +194,32 @@ export class BookingsService {
     });
 
     return booking;
+  }
+  async getRevenue() {
+    const result = await this.bookingModel.aggregate([
+      {
+        $match: {
+          status: 'completed',
+        },
+      },
+      {
+        $group: {
+          _id: { $month: '$startDate' },
+          total: { $sum: '$totalAmount' },
+        },
+      },
+      {
+        $project: {
+          month: '$_id',
+          total: 1,
+          _id: 0,
+        },
+      },
+      {
+        $sort: { month: 1 },
+      },
+    ]);
+
+    return result;
   }
 }

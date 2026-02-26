@@ -11,6 +11,8 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import ThemeToggle from "../theme-toggle";
 import { NavMenu } from "./nav-menu";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
+
 
 const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -78,19 +80,25 @@ const Navbar = () => {
               </SheetTrigger>
 
               <SheetContent>
+
+
                 <SheetHeader>
-                  <SheetTitle>เมนูนำทาง</SheetTitle>
+                  <VisuallyHidden>
+                    <SheetTitle>Navigation Menu</SheetTitle>
+                  </VisuallyHidden>
                   <SheetDescription>
 
                   </SheetDescription>
                 </SheetHeader>
+
+
 
                 <NavMenu orientation="vertical" className="mt-6" />
 
                 {/* 🔥 Mobile Admin */}
                 {isLoggedIn && role === "admin" && (
                   <Button asChild className="w-full mt-4">
-                    Admin
+                    <Link href="/admin">Admin</Link>
                   </Button>
                 )}
 
